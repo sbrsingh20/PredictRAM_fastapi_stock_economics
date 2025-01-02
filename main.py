@@ -23,6 +23,11 @@ def load_stock_data(stock_name: str):
         return stock_data.to_dict(orient='records')
     return None
 
+# Root endpoint
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the FastAPI Stock and Economic Data API! Visit /docs for the API documentation."}
+
 # Endpoint to get IIP data
 @app.get("/iip_data/")
 async def get_iip_data():
@@ -49,3 +54,8 @@ async def get_stock_data_in_range(stock_name: str, start_date: Optional[str] = N
         data = [row for row in data if start_date <= row['Date'] <= end_date]
     
     return JSONResponse(content={"data": data})
+
+# Handle favicon request to avoid 404
+@app.get("/favicon.ico")
+async def favicon():
+    return {"message": "No favicon available"}
