@@ -7,8 +7,11 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Install the required packages
-RUN pip install --no-cache-dir -r requirements.txt
+# Install virtualenv and create a virtual environment
+RUN pip install --no-cache-dir virtualenv && virtualenv venv
 
-# Command to run the FastAPI app
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Install dependencies in the virtual environment
+RUN ./venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# Command to run the FastAPI app using virtualenv
+CMD ["./venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
