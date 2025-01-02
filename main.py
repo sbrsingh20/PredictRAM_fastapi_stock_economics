@@ -4,7 +4,13 @@ import os
 from fastapi.responses import JSONResponse
 from typing import Optional
 
-app = FastAPI()
+app = FastAPI(
+    title="Stock and Economic Data API",
+    description="This API provides stock market and economic data, including IIP and inflation statistics.",
+    version="1.0.0",
+    docs_url="/docs",  # Custom path for Swagger UI documentation
+    redoc_url="/redoc",  # Custom path for ReDoc documentation
+)
 
 # Path to the IIP data file and stock price directory
 IIP_FILE_PATH = os.path.join(os.path.dirname(__file__), 'IIP_data_Nov_2024.xlsx')
@@ -13,20 +19,29 @@ STOCKS_DIRECTORY = os.path.join(os.path.dirname(__file__), 'Stock_Price')
 # Load IIP Data with error handling
 def load_iip_data():
     try:
+        # Try reading the IIP data file
+        if not os.path.exists(IIP_FILE_PATH):
+            raise FileNotFoundError(f"File {IIP_FILE_PATH} not found.")
+        
         iip_data = pd.read_excel(IIP_FILE_PATH)
         return iip_data.to_dict(orient='records')
+    except FileNotFoundError as fnf_error:
+        raise HTTPException(status_code=404, detail=str(fnf_error))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading IIP data: {str(e)}")
 
 # Load stock data by stock name with error handling
 def load_stock_data(stock_name: str):
     try:
+        # Construct the path for the stock data file
         stock_file_path = os.path.join(STOCKS_DIRECTORY, f"{stock_name}.xlsx")
-        if os.path.exists(stock_file_path):
-            stock_data = pd.read_excel(stock_file_path)
-            return stock_data.to_dict(orient='records')
-        else:
-            raise HTTPException(status_code=404, detail="Stock data not found.")
+        if not os.path.exists(stock_file_path):
+            raise FileNotFoundError(f"Stock data for {stock_name} not found.")
+        
+        stock_data = pd.read_excel(stock_file_path)
+        return stock_data.to_dict(orient='records')
+    except FileNotFoundError as fnf_error:
+        raise HTTPException(status_code=404, detail=str(fnf_error))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading stock data: {str(e)}")
 
